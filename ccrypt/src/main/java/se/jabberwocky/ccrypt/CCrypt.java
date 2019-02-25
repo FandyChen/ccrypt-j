@@ -1,22 +1,15 @@
 package se.jabberwocky.ccrypt;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.StandardCharsets;
-import java.security.spec.InvalidKeySpecException;
-
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.bouncycastle.crypto.engines.RijndaelEngine;
-
 import se.jabberwocky.ccrypt.jce.CCryptKey;
 import se.jabberwocky.ccrypt.jce.CCryptKeySpec;
 import se.jabberwocky.ccrypt.jce.CCryptSecretKeyFactorySpi;
+
+import java.io.*;
+import java.security.spec.InvalidKeySpecException;
 
 /**
  * <p>
@@ -40,6 +33,8 @@ import se.jabberwocky.ccrypt.jce.CCryptSecretKeyFactorySpi;
  */
 public final class CCrypt {
 
+    private static final String CPT_SUFFIX = ".cpt";
+    private static final String TMP_SUFFIX = ".tmp";
     private final RijndaelEngine engine;
     private final CCryptKey secret;
 
@@ -145,18 +140,18 @@ public final class CCrypt {
      */
     public void decrypt(File cipher, boolean verify) throws IOException {
 
-        File temp = File.createTempFile(cipher.getName(), ".tmp");
+        File temp = File.createTempFile(cipher.getName(), TMP_SUFFIX);
 
         decrypt(cipher, temp, verify);
 
         String filename = cipher.getAbsolutePath();
-        if (filename.endsWith(".cpt")) {
+        if (filename.endsWith(CPT_SUFFIX)) {
             filename = filename.substring(0,
-                    filename.length() - ".cpt".length());
+                    filename.length() - CPT_SUFFIX.length());
         }
         cipher.delete();
         File plain = new File(filename);
-        temp.renameTo(plain);
+        FileUtils.moveFile(temp, plain);
     }
 
     /**
